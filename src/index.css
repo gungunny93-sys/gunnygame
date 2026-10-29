@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --color-espresso: #3B2418;
+  --color-crema: #C68B59;
+  --color-milk: #F7EFE5;
+  --color-wood: #8A5A3B;
+  --color-ink: #2A1E17;
+  --color-good: #4CAF7A;
+  --color-warn: #E0A43A;
+  --color-danger: #D2553F;
+  --color-cold: #6FA8DC;
+  --color-wall: #FBF5EC;
+  --font-title: "Jua", "Noto Sans KR", sans-serif;
+  --font-body: "Noto Sans KR", system-ui, sans-serif;
+}
+
+html { font-size: 16px; }
+/* 전자칠판(1920×1080 이상): 전체를 크게 */
+@media (min-width: 1700px) and (min-height: 950px) { html { font-size: 20px; } }
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-wall);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+button { font-family: inherit; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+button:focus-visible { outline: 3px solid var(--color-cold); outline-offset: 2px; }
+
+/* 공용 버튼: 최소 64px 터치 대상 */
+@layer components {
+  .btn {
+    @apply min-h-16 min-w-16 rounded-2xl px-4 font-bold text-base shadow-sm transition active:scale-95 disabled:opacity-40 disabled:active:scale-100 select-none;
+  }
+  .btn-primary { @apply min-h-16 min-w-16 rounded-2xl px-4 font-bold text-base shadow-sm transition active:scale-95 disabled:opacity-40 disabled:active:scale-100 select-none bg-wood text-milk; }
+  .btn-soft { @apply min-h-16 min-w-16 rounded-2xl px-4 font-bold text-base shadow-sm transition active:scale-95 disabled:opacity-40 disabled:active:scale-100 select-none bg-milk text-ink border-2 border-wood/30; }
+  .btn-danger { @apply min-h-16 min-w-16 rounded-2xl px-4 font-bold text-base shadow-sm transition active:scale-95 disabled:opacity-40 disabled:active:scale-100 select-none bg-danger text-milk; }
+  .panel { @apply rounded-3xl bg-milk/90 border-2 border-wood/20 shadow-sm; }
+  .title { font-family: var(--font-title); }
+}
+
+/* 튜토리얼 하이라이트 */
+.tut-highlight {
+  position: relative;
+  z-index: 40;
+  box-shadow: 0 0 0 4px var(--color-warn), 0 0 0 10px rgba(224, 164, 58, 0.35);
+  border-radius: 1rem;
+  animation: tutPulse 1.2s ease-in-out infinite;
+}
+@keyframes tutPulse { 50% { box-shadow: 0 0 0 4px var(--color-warn), 0 0 0 16px rgba(224, 164, 58, 0.15); } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
