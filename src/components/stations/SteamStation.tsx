@@ -54,6 +54,7 @@ export function SteamStation() {
     <section className="panel flex h-full flex-col gap-2 p-2" aria-label="스팀 작업대">
       <h2 className="title flex items-center gap-2 text-xl"><span aria-hidden>♨</span>스팀 피처</h2>
 
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
       {!sessionUsesMilk(session.menuIds) && (
         <p className="rounded-xl bg-wall px-2 py-1 text-sm opacity-60">이번 스테이지에는 우유 메뉴가 없어요</p>
       )}
@@ -79,8 +80,9 @@ export function SteamStation() {
         {p.coarse && <span className="rounded-full bg-warn px-3 py-1 text-sm font-bold">⚠ 거친 거품!</span>}
         {p.scalded && <span className="rounded-full bg-danger px-3 py-1 text-sm font-bold text-milk">🔥 탄 우유 — 쓸 수 없어요</span>}
       </div>
+      </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid shrink-0 grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
           <HoldButton hold="aerate" tut="aerate" className="btn-primary text-base">공기 주입 (A)</HoldButton>
           <div className={`rounded-lg px-1 text-center text-xs font-bold ${aerateOk ? 'bg-good/30' : 'bg-danger/30'}`}>
@@ -90,12 +92,12 @@ export function SteamStation() {
         <HoldButton hold="roll" tut="roll" className="btn-primary text-base">롤링 (S)</HoldButton>
       </div>
 
-      <button type="button" className="btn-soft text-sm" onClick={() => st.emptyPitcher()}>피처 비우기·새 우유</button>
+      <button type="button" className="btn-soft shrink-0 text-sm" onClick={() => st.emptyPitcher()}>피처 비우기·새 우유</button>
 
       {session.hygieneOn && (
-        <div className="grid grid-cols-1 gap-2">
-          <button type="button" className="btn-soft text-sm" onClick={() => st.purgeWand()}>🌬 스팀완드 퍼징 {session.wand.purged ? '✓' : ''}</button>
-          <button type="button" className="btn-soft text-sm" onClick={() => st.wipeWand()}>🧻 스팀완드 닦기 {session.wand.wiped ? '✓' : ''}</button>
+        <div className="grid shrink-0 grid-cols-2 gap-2">
+          <button type="button" className="btn-soft text-sm" aria-label="스팀완드 퍼징" onClick={() => st.purgeWand()}>🌬 퍼징 {session.wand.purged ? '✓' : <span className="block rounded-full bg-warn px-1 text-xs">⚠ 스팀 전에</span>}</button>
+          <button type="button" className="btn-soft text-sm" aria-label="스팀완드 닦기" onClick={() => st.wipeWand()}>🧻 완드 닦기 {session.wand.wiped ? '✓' : <span className="block rounded-full bg-warn px-1 text-xs">⚠ 스팀 뒤에</span>}</button>
         </div>
       )}
     </section>

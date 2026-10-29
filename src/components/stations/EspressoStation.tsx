@@ -39,6 +39,7 @@ export function EspressoStation() {
     <section className="panel flex h-full flex-col gap-2 p-2" aria-label="에스프레소 작업대">
       <h2 className="title flex items-center gap-2 text-xl"><span aria-hidden>☕</span>그라인더·에스프레소</h2>
 
+      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto">
       {grinder ? (
         <GrinderDial value={e.grind} onChange={(v) => st.setGrind(v)} disabled={e.running} />
       ) : (
@@ -63,20 +64,7 @@ export function EspressoStation() {
         ) : <>손님을 기다리는 중…</>}
       </div>
 
-      <div className="flex flex-col items-center">
-        <Machine running={e.running} />
-        <ShotGlass ml={e.ml} running={e.running} timeSec={e.timeSec} targetMl={std?.targetMl ?? null} guide={guide} />
-      </div>
-
-      <div className="flex items-baseline justify-center gap-4 font-bold tabular-nums" aria-live="off">
-        <span className="text-3xl">{e.timeSec.toFixed(1)}초</span>
-        <span className="text-3xl">{e.ml.toFixed(1)}ml</span>
-      </div>
-
-      <button type="button" data-tut="shot-toggle" className={e.running ? 'btn-danger text-xl' : 'btn-primary text-xl'}
-        onClick={() => st.toggleShot()}>
-        {e.running ? '■ 정지' : '▶ 추출 시작'}
-      </button>
+      <div className="mx-auto w-2/3 max-w-52"><Machine running={e.running} /></div>
 
       {e.ready && (
         <div className="rounded-xl border-2 border-good bg-wall p-2 text-sm">
@@ -91,13 +79,28 @@ export function EspressoStation() {
         </div>
       )}
 
+      </div>
+
+      <div className="flex shrink-0 items-end justify-center gap-3">
+        <ShotGlass ml={e.ml} running={e.running} timeSec={e.timeSec} targetMl={std?.targetMl ?? null} guide={guide} />
+        <div className="flex flex-col font-bold tabular-nums leading-tight" aria-live="off">
+          <span className="text-3xl">{e.timeSec.toFixed(1)}초</span>
+          <span className="text-3xl">{e.ml.toFixed(1)}ml</span>
+        </div>
+      </div>
+
+      <button type="button" data-tut="shot-toggle" className={`shrink-0 ${e.running ? 'btn-danger text-xl' : 'btn-primary text-xl'}`}
+        onClick={() => st.toggleShot()}>
+        {e.running ? '■ 정지' : '▶ 추출 시작'}
+      </button>
+
       {session.hygieneOn && (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid shrink-0 grid-cols-2 gap-2">
           <button type="button" disabled={e.running} className="btn-soft text-sm" onClick={() => st.knockPuck()}>
-            🧱 퍽 버리기 {e.pf.puckKnocked ? '✓' : <span className="rounded-full bg-warn px-2 text-xs">⚠ 다음 추출 전에 해요</span>}
+            🧱 퍽 버리기 {e.pf.puckKnocked ? '✓' : <span className="block rounded-full bg-warn px-1 text-xs">⚠ 추출 전에</span>}
           </button>
-          <button type="button" disabled={e.running} className="btn-soft text-sm" onClick={() => st.flushGroup()}>
-            💧 그룹헤드 물 흘리기 {e.pf.flushed ? '✓' : <span className="rounded-full bg-warn px-2 text-xs">⚠ 다음 추출 전에 해요</span>}
+          <button type="button" disabled={e.running} className="btn-soft text-sm" aria-label="그룹헤드 물 흘리기" onClick={() => st.flushGroup()}>
+            💧 물 흘리기 {e.pf.flushed ? '✓' : <span className="block rounded-full bg-warn px-1 text-xs">⚠ 추출 전에</span>}
           </button>
         </div>
       )}
