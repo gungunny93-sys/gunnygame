@@ -7,7 +7,7 @@ import { MENU_BY_ID, MENUS, getMenu } from '../data/menus';
 import { getStage } from '../data/stages';
 import { CUPS, EQUIPMENT, HYGIENE_RULES, INGREDIENTS, JUDGE_RULES, STANDARDS } from '../data/standards';
 import type {
-  CupId, CustomerTypeId, GroupId, Ingredient, MistakeCode, PlayLog, Progress, Settings, StageConfig,
+  CupId, CustomerTypeId, DrinkRecipe, GroupId, Ingredient, MistakeCode, PlayLog, Progress, Settings, StageConfig,
 } from '../data/types';
 import {
   DEFAULT_PROGRESS, DEFAULT_SETTINGS, appendLog, loadProgress, loadSettings, saveProgress, saveSettings,
@@ -81,6 +81,7 @@ export interface Session {
   cup: CupState;
   slots: (ServeCup | null)[];
   selectedSlot: number | null;
+  focusUid: number | null;      // 플레이어가 고른 주문(가이드선 기준). 없으면 줄 맨 앞
   nextCupId: number;
   holds: Record<HoldKey, boolean>;
   hygiene: number;
@@ -166,6 +167,9 @@ export interface GameState {
 
   // 서빙
   selectSlot: (i: number | null) => void;
+  focusCustomer: (uid: number | null) => void;
+  /** 손님 티켓을 탭: 서빙대 컵이 선택돼 있으면 서빙, 아니면 그 주문에 집중 */
+  tapCustomer: (uid: number) => void;
   serveTo: (uid: number, slot?: number) => void;
   serveDefault: () => void;
   discardSlot: (i: number) => void;
@@ -205,7 +209,7 @@ function newSession(mode: SessionMode, stage: StageConfig, menuIds: string[], se
       ready: null, taste: null, pf: initialPortafilter(),
     },
     pitcher: freshPitcher(), wand: initialWand(),
-    cup: emptyCup(), slots: Array.from({ length: EQUIPMENT.serveSlots }, () => null), selectedSlot: null, nextCupId: 1,
+    cup: emptyCup(), slots: Array.from({ length: EQUIPMENT.serveSlots }, () => null), selectedSlot: null, focusUid: null, nextCupId: 1,
     holds: noHolds(),
     hygiene: HYGIENE_RULES.start, minHygiene: HYGIENE_RULES.start, cleaning: null,
     streak: 0, tips: 0, records: [], acceptedCount: 0,
@@ -375,6 +379,7 @@ export function createGameStore(opts: { persist?: boolean } = {}) {
           }
         }
         s.customers = tp.customers;
+        if (s.focusUid !== null && !s.customers.some((c) => c.uid === s.focusUid)) s.focusUid = null;
 
         // 5. 원두 상태 변화 이벤트
         if (s.mode === 'stage' && beanChangeDue(s.stage, s.records.length, s.beanChanged)) {
@@ -526,13 +531,20 @@ export function createGameStore(opts: { persist?: boolean } = {}) {
         const slots = s.slots.slice();
         slots[idx] = { ...s.cup, id: s.nextCupId };
         return {
-          ...s, slots, selectedSlot: idx, nextCupId: s.nextCupId + 1, cup: emptyCup(),
+          ...s, slots, nextCupId: s.nextCupId + 1, cup: emptyCup(),
           holds: { ...s.holds, hotWater: false, coldWater: false, coldMilk: false, steamedMilk: false },
         };
       }),
 
       // ── 서빙 ──
       selectSlot: (i) => upd((s) => ({ ...s, selectedSlot: i })),
+      focusCustomer: (uid) => upd((s) => ({ ...s, focusUid: uid })),
+      tapCustomer: (uid) => {
+        const s = get().session;
+        if (!s) return;
+        if (s.selectedSlot !== null && s.slots[s.selectedSlot]) get().serveTo(uid, s.selectedSlot);
+        else get().focusCustomer(uid);
+      },
       serveTo: (uid, slot) => upd((s) => {
         if (!active(s)) return s;
         const si = slot ?? s.selectedSlot ?? s.slots.findIndex((x) => x !== null);
@@ -581,10 +593,9 @@ function finishCleaning(s: Session): Session {
   return addToast(next, '마감 청소 끝! 위생 게이지 50%로 영업을 다시 시작해요.', 'info');
 }
 
-/** 테스트 샷 맛 판정 기준: 줄 맨 앞 손님 메뉴의 샷, 없으면 스테이지 첫 메뉴 */
+/** 테스트 샷 맛 판정 기준: 집중한 주문 메뉴의 샷, 없으면 스테이지 첫 메뉴 */
 function shotTypeFor(s: Session) {
-  const menuId = s.customers[0]?.menuId ?? s.menuIds[0];
-  return getMenu(menuId).shot;
+  return (focusRecipe(s) ?? getMenu(s.menuIds[0])).shot;
 }
 
 /** Enter 서빙: 이 컵과 가장 잘 맞는 손님(같으면 먼저 온 손님) */
@@ -640,6 +651,7 @@ function serveCup(s: Session, slotIndex: number, cup: ServeCup, customer: Active
   } else {
     next.hint = accepted ? null : next.hint;
     next.customers = s.customers.filter((c) => c.uid !== customer.uid);
+    if (next.focusUid === customer.uid) next.focusUid = null;
     next.departed = [...s.departed, { uid: customer.uid, menuId: customer.menuId, typeId: customer.typeId, outcome: accepted ? 'served' : 'returned', at: s.elapsed }];
   }
   if (accepted && streak >= 2) next = addToast(next, `콤보 ×${streak >= 3 ? '1.5' : '1.2'}! 팁 +${tip}`, 'combo');
@@ -668,6 +680,25 @@ export const sel = {
   customers: (s: GameState) => s.session?.customers ?? null,
   holds: (s: GameState) => s.session?.holds ?? null,
 };
+
+/** 지금 집중한 주문(없으면 줄 맨 앞 손님) */
+export function focusCustomerOf(s: Session): ActiveCustomer | null {
+  return s.customers.find((c) => c.uid === s.focusUid) ?? s.customers[0] ?? null;
+}
+
+/** 가이드선 기준 레시피: 집중한 주문의 메뉴 */
+export function focusRecipe(s: Session): DrinkRecipe | null {
+  const c = focusCustomerOf(s);
+  return c ? getMenu(c.menuId) : null;
+}
+
+/** 조립대 가이드 레시피: 고른 컵과 같은 컵을 쓰는 주문을 우선 */
+export function assemblyRecipe(s: Session): DrinkRecipe | null {
+  const focus = focusRecipe(s);
+  if (!s.cup.cupId || (focus && focus.cup === s.cup.cupId)) return focus;
+  const c = s.customers.find((x) => getMenu(x.menuId).cup === s.cup.cupId);
+  return c ? getMenu(c.menuId) : focus;
+}
 
 /** 이 세션에서 쓸 수 있는 재료 버튼(스테이지 메뉴의 재료 합집합) */
 export function availableIngredients(menuIds: string[]): Ingredient[] {

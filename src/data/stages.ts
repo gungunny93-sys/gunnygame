@@ -36,14 +36,14 @@ export const STAGES: StageConfig[] = [
     newMechanic: '공기 주입(초반, 37℃ 전까지) 시간이 거품 두께를 정해요. 카푸치노는 길게, 플랫화이트는 아주 짧게!',
     patienceSec: 75, maxConcurrent: 2, shotTolerance: 0.12, ingredientTolerance: 0.15,
     guide: 'targetOnly', idealGrind: [4, 6], events: [], totalOrders: 8, clearCount: 5,
-    timeOfDay: '오후 1시', spawnIntervalSec: 14, customerMix: { regular: 3, hurry: 1, picky: 1 } },
+    timeOfDay: '오후 1시', spawnIntervalSec: 18, customerMix: { regular: 3, hurry: 1, picky: 1 } },
 
   { id: 5, name: '차갑게, 달콤하게', learn: '아이스 메뉴와 부재료, 투입 순서',
     menuIds: ['iced-americano', 'iced-latte', 'vanilla-latte', 'cafe-mocha'],
     newMechanic: '얼음·시럽·소스·휘핑이 등장해요. 순서가 중요한 메뉴는 레시피 카드 순서대로 담아요.',
     patienceSec: 70, maxConcurrent: 2, shotTolerance: 0.12, ingredientTolerance: 0.15,
     guide: 'targetOnly', idealGrind: [4, 6], events: [], totalOrders: 8, clearCount: 5,
-    timeOfDay: '오후 3시', spawnIntervalSec: 14, customerMix: { regular: 3, hurry: 1, picky: 1 } },
+    timeOfDay: '오후 3시', spawnIntervalSec: 18, customerMix: { regular: 3, hurry: 1, picky: 1 } },
 
   { id: 6, name: '깨끗한 바', learn: '위생 관리 절차',
     menuIds: BASE_MENUS_1_TO_5,
@@ -51,14 +51,14 @@ export const STAGES: StageConfig[] = [
     patienceSec: 65, maxConcurrent: 2, shotTolerance: 0.1, ingredientTolerance: 0.15,
     guide: 'targetOnly', idealGrind: [4, 6], events: ['hygiene'], totalOrders: 8, clearCount: 5,
     minHygiene: 50,
-    timeOfDay: '오후 5시', spawnIntervalSec: 16, customerMix: { regular: 3, hurry: 1, picky: 1 } },
+    timeOfDay: '오후 5시', spawnIntervalSec: 20, customerMix: { regular: 3, hurry: 1, picky: 1 } },
 
   { id: 7, name: '러시아워', learn: '종합',
     menuIds: [...BASE_MENUS_1_TO_5, 'iced-vanilla-latte', 'cortado', 'con-panna', 'affogato'],
     newMechanic: '손님이 한꺼번에 몰려와요(동시 3→4명). 80점 이상을 이어 가면 콤보 팁!',
     patienceSec: 55, maxConcurrent: [3, 4], shotTolerance: 0.08, ingredientTolerance: 0.15,
     guide: 'hidden', idealGrind: [3, 7], events: ['beanChange', 'hygiene'], totalOrders: 10, clearCount: 7,
-    timeOfDay: '오후 6시', spawnIntervalSec: 16, customerMix: { regular: 2, hurry: 2, picky: 1 } },
+    timeOfDay: '오후 6시', spawnIntervalSec: 24, customerMix: { regular: 3, hurry: 1, picky: 1 } },
 ];
 
 export const STAGE_BY_ID: Record<number, StageConfig> = Object.fromEntries(STAGES.map((s) => [s.id, s]));
